@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         GIT_BRANCH = "main" // Nhanh git build
-        GIT_REPO_NAME = "github.com/robusta-course/web-nginx-docker-hub-bai-tap-4"
+        GIT_REPO_NAME = "github.com/nhonnguyen/multibranch-pipeline"
         TELEGRAM_BOT_TOKEN = credentials('telegram-token') // Telegram bot access token
         TELEGRAM_CHAT_ID = credentials('telegram-chat-id') // Telegram bot chat id
         DOCKER_ENDPOINT = "nhontrnguyen" //Docker user Hub hoac Docker Private Resistry ENDPOINT
@@ -67,7 +67,7 @@ pipeline {
                 
                         sh '''
                             #!/bin/bash
-                            server='192.168.3.20'
+                            server='192.168.3.140'
                                 echo "Deploying to server: $server"
                                 ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} ${SSH_USER}@$server "sudo docker pull ${IMAGE_NAME}:${TAG}"
                                 ssh -i ${SSH_KEY_PATH} ${SSH_USER}@$server "sudo docker stop ${DOCKER_NAME} || true"
