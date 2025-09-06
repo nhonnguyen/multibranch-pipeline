@@ -65,18 +65,23 @@ pipeline {
                 script {
                     // Loop through each server and deploy the Docker container
                 
-                        sh '''
-                            #!/bin/bash
-                            server='192.168.3.150'
-                                echo "Deploying to server: $server"
-                                ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} ${SSH_USER}@$server "sudo docker pull ${IMAGE_NAME}:${TAG}"
-                                sleep 2
-                                ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} ${SSH_USER}@$server "sudo docker stop ${DOCKER_NAME} || true"
-                                sleep 2
-                                ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} ${SSH_USER}@$server "sudo docker rm ${DOCKER_NAME} || true"
-                                sleep 2
-                                ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} ${SSH_USER}@$server "sudo docker run -d --name ${DOCKER_NAME} -p 8900:80 ${IMAGE_NAME}:${TAG}"
-                        '''
+                      sh """
+                        #!/bin/bash
+                        set -e
+                        server="192.168.3.150"
+                        ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                                   -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 \
+                                   -i ${SSH_KEY_PATH}"
+                
+                        echo "Deploying to server: $server"
+                        ssh $ssh_opts ${SSH_USER}@$server '
+                          set -e
+                          sudo docker pull '"${IMAGE_NAME}:${TAG}"' &&
+                          sudo docker stop '"${DOCKER_NAME}"' || true &&
+                          sudo docker rm '"${DOCKER_NAME}"' || true &&
+                          sudo docker run -d --name '"${DOCKER_NAME}"' -p 8900:80 '"${IMAGE_NAME}:${TAG}"'
+                        '
+                      """
                         
                      }
                 }
