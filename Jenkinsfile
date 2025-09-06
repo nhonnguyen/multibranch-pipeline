@@ -69,11 +69,9 @@ pipeline {
                     // Loop through each server and deploy the Docker container
                 
                       sh """
-                        #!/bin/bash
                         server="192.168.3.150"
                         echo "Deploying to server: $server"
                         ssh $ssh_opts ${SSH_USER}@$server '
-                          set -e
                           sudo docker pull '"${IMAGE_NAME}:${TAG}"' &&
                           sudo docker stop '"${DOCKER_NAME}"' || true &&
                           sudo docker rm '"${DOCKER_NAME}"' || true &&
