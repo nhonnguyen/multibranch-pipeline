@@ -11,6 +11,9 @@ pipeline {
         TAG = "${VERSION}.${env.BUILD_NUMBER}"
         IMAGE_NAME = "${DOCKER_ENDPOINT}/${DOCKER_NAME}"
         SSH_USER = "admin01"
+        ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                                   -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 \
+                                   -i ${SSH_KEY_PATH}"
         }
     stages {
         stage('Clone Repository') {
@@ -67,12 +70,7 @@ pipeline {
                 
                       sh """
                         #!/bin/bash
-                        set -e
                         server="192.168.3.150"
-                        ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-                                   -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 \
-                                   -i ${SSH_KEY_PATH}"
-                
                         echo "Deploying to server: $server"
                         ssh $ssh_opts ${SSH_USER}@$server '
                           set -e
