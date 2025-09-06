@@ -11,9 +11,6 @@ pipeline {
         TAG = "${VERSION}.${env.BUILD_NUMBER}"
         IMAGE_NAME = "${DOCKER_ENDPOINT}/${DOCKER_NAME}"
         SSH_USER = "admin01"
-        ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-                                   -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 \
-                                   -i ${SSH_KEY_PATH}"
         }
     stages {
         stage('Clone Repository') {
@@ -69,14 +66,13 @@ pipeline {
                     // Loop through each server and deploy the Docker container
                 
                       sh """
-                        server="192.168.3.150"
-                        echo "Deploying to server: $server"
-                        ssh $ssh_opts ${SSH_USER}@$server '
-                          sudo docker pull '"${IMAGE_NAME}:${TAG}"' &&
-                          sudo docker stop '"${DOCKER_NAME}"' || true &&
-                          sudo docker rm '"${DOCKER_NAME}"' || true &&
-                          sudo docker run -d --name '"${DOCKER_NAME}"' -p 8900:80 '"${IMAGE_NAME}:${TAG}"'
-                        '
+                            #!/bin/bash
+                            server='192.168.3.150'
+                                echo "Deploying to server: $server"
+                                ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_PATH} ${SSH_USER}@$server "sudo docker pull ${IMAGE_NAME}:${TAG}"
+                                ssh -o StrictHostKeyChecking=no -i .ssh/id_rsa admin01@192.168.3.150 "sudo docker stop nginx-jenkins || true"
+                                ssh -o StrictHostKeyChecking=no -i .ssh/id_rsa admin01@192.168.3.150 "sudo docker rm nginx-jenkins || true"
+                                ssh -o StrictHostKeyChecking=no -i .ssh/id_rsa admin01@192.168.3.150 "sudo docker run -d --name nginx-jenkins -p 8900:80 nhontrnguyen/nginx-jenkins:1.0.6"
                       """
                         
                      }
